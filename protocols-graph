@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+
+#
+# protocols.pl - get in and out byte counters, make rrd graphs
+#
+# Copyright 2014 by David Newman
+#
+# todo:
+# DONE 1. Use Net::SNMP instead of a system call to get values
+# 2. Align max/avg/current legend for "Out" counters
+# 3. Learn to aggregate data from multiple interfaces
+
+use strict;
+use warnings;
+
+use Data::Dumper;
+
+# define location of rrdtool databases
+my $rrd = '/home/jhoblitt/apwatch/rrd';
+
+
+system("rrdtool graph /home/jhoblitt/apwatch/images/gateway-2.expo.socallinuxexpo.org-protocols-day-live.png --x-grid HOUR:1:DAY:1:HOUR:6:0:'%A %H%p' -s '06:00 02/21/14' -S 60 --color=BACK#000000 --color=CANVAS#000000 --color=FONT#FFFFFF --color=GRID#FFFFFF --color=MGRID#FFFFFF --full-size-mode --border 0 -h 450 -w 900 -l 0 -a PNG -v bit/s DEF:in_2=$rrd/gateway-2.expo.socallinuxexpo.org-2.rrd:in:AVERAGE DEF:in_10=$rrd/gateway-2.expo.socallinuxexpo.org-ipv6-10.rrd:in:AVERAGE DEF:out_2=$rrd/gateway-2.expo.socallinuxexpo.org-2.rrd:out:AVERAGE DEF:out_10=$rrd/gateway-2.expo.socallinuxexpo.org-ipv6-10.rrd:out:AVERAGE CDEF:ipv4in=in_2,in_10,- CDEF:ipv4out=out_2,out_10,- CDEF:ipv4inbits=ipv4in,8,* CDEF:ipv4outbits=ipv4out,8,* CDEF:ipv6inbits=in_10,8,* CDEF:ipv6outbits=out_10,8,* CDEF:ipv4outbits_neg=ipv4outbits,-1,* CDEF:ipv6outbits_neg=ipv6outbits,-1,* TEXTALIGN:left LINE:ipv4inbits#FF0000:'IPv4 in' GPRINT:ipv4inbits:MAX:'  Maximum\\: %5.1lf %S' GPRINT:ipv4inbits:AVERAGE:' Average\\: %5.1lf %S' GPRINT:ipv4inbits:LAST:' Current\\: %5.1lf %Sbit/s' COMMENT:'\\n' LINE:ipv6inbits#00FF00:'IPv6 in' GPRINT:ipv6inbits:MAX:'  Maximum\\: %5.1lf %S' GPRINT:ipv6inbits:AVERAGE:' Average\\: %5.1lf %S' GPRINT:ipv6inbits:LAST:' Current\\: %5.1lf %Sbit/s' COMMENT:'\\n' LINE:ipv4outbits_neg#0000FF:'IPv4 out' GPRINT:ipv4outbits:MAX:'  Maximum\\: %5.1lf' GPRINT:ipv4outbits:AVERAGE:' Average\\: %5.1lf' GPRINT:ipv4outbits:LAST:' Current\\: %5.1lf %Sbit/s' COMMENT:'\\n' LINE:ipv6outbits_neg#FFFF00:'IPv6 out' GPRINT:ipv6outbits:MAX:'  Maximum\\: %5.1lf' GPRINT:ipv6outbits:AVERAGE:' Average\\: %5.1lf' GPRINT:ipv6outbits:LAST:' Current\\: %5.1lf %Sbit/s' HRULE:0#000000");

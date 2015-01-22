@@ -1,0 +1,69 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use RRDs;
+
+# combined.pl - graph aggregate traffic from show floor switches (as seen on switch-1 ports 21-22)
+# copyright 2014 by David Newman
+
+my $hostname = 'switch-1.expo.socallinuxexpo.org';
+# define location of rrdtool databases
+my $rrd = '/home/jhoblitt/apwatch/rrd';
+# define location of images
+my $img = '/home/jhoblitt/apwatch/images';
+my $ERR = RRDs::error;
+my $showname = "SCaLE 12x";
+my $interface = 0;
+
+&RRDgraph($interface, "day");
+&RRDgraph($interface, "week");
+
+sub RRDgraph {
+# creates graph
+# inputs: $_[0]: interface index (e.g., 10101)
+#         $_[1]: period (e.g., day, week, month, year)
+#         $_[2]: ifDescr (e.g., GigabitEthernet1/0/1)
+
+        RRDs::graph "$img/combined-$_[1].png",
+        "-s -1$_[1]",
+	"--color=BACK#000000",
+	"--color=CANVAS#000000",
+	"--color=FONT#FFFFFF",
+	"--color=GRID#7F7F7F",
+	"--color=MGRID#FFFFFF",
+	# "-t $showname show floor traffic",
+	"--full-size-mode",
+	"--border", "0",
+	"-h", "450", "-w", "900",
+	"-l 0",
+	"-a", "PNG",
+	"-v bit/s",
+	"DEF:in21=$rrd/$hostname-21.rrd:in:AVERAGE",
+	"DEF:in22=$rrd/$hostname-22.rrd:in:AVERAGE",
+	"DEF:out21=$rrd/$hostname-21.rrd:out:AVERAGE",
+	"DEF:out22=$rrd/$hostname-22.rrd:out:AVERAGE",
+	"CDEF:in=in21,in22,+",
+	"CDEF:out=out21,out22,+",
+	# convert in and out bytes to bits
+	"CDEF:inbits=in,8,*",
+	"CDEF:outbits=out,8,*",
+	"CDEF:out_neg=outbits,-1,*",
+	"TEXTALIGN:left",
+	"AREA:inbits#32CD32: In",
+	"LINE2:inbits#336600",
+	"GPRINT:inbits:MAX:  Maximum\\: %5.1lf %S",
+	"GPRINT:inbits:AVERAGE: Average\\: %5.1lf %S",
+	"GPRINT:inbits:LAST: Current\\: %5.1lf %Sbit/s",
+	"COMMENT:\\n",
+	"AREA:out_neg#4169E1:Out",
+	"LINE2:out_neg#0033CC",
+	"GPRINT:outbits:MAX:  Maximum\\: %5.1lf %S",
+	"GPRINT:outbits:AVERAGE: Average\\: %5.1lf %S",
+	"GPRINT:outbits:LAST: Current\\: %5.1lf %Sbit/s",
+	"HRULE:0#000000";
+	if ($ERR = RRDs::error) {
+		print "$0: unable to create graph $img/$hostname-combined.png:
+$ERR\n";
+	}
+}

@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+
+#
+# firewall.pl - get in and out byte counters, make rrd graphs
+#
+# Copyright 2014 by David Newman
+#
+# todo:
+# DONE 1. Use Net::SNMP instead of a system call to get values
+# 2. Align max/avg/current legend for "Out" counters
+# 3. Learn to aggregate data from multiple interfaces
+
+use strict;
+use warnings;
+
+use Data::Dumper;
+
+# define location of rrdtool databases
+my $rrd = '/home/jhoblitt/apwatch/rrd';
+# define location of images
+my $img = '/home/jhoblitt/apwatch/images';
+
+
+
+system("rrdtool graph /home/jhoblitt/apwatch/images/gateway-2.expo.socallinuxexpo.org-2-day.png --x-grid HOUR:1:DAY:1:HOUR:6:0:'%A %H%p' -s '06:00 02/21/14' --color=BACK#000000 --color=CANVAS#000000 --color=FONT#FFFFFF --color=GRID#7F7F7F --color=MGRID#FFFFFF --full-size-mode --border 0 -h 450 -w 900 -l 0 -a PNG -v bit/s DEF:in=$rrd/gateway-2.expo.socallinuxexpo.org-2.rrd:in:AVERAGE DEF:out=$rrd/gateway-2.expo.socallinuxexpo.org-2.rrd:out:AVERAGE CDEF:inbits=in,8,* CDEF:outbits=out,8,* CDEF:out_neg=outbits,-1,* TEXTALIGN:left AREA:inbits#32CD32:' In' GPRINT:inbits:MAX:'  Maximum\\: %5.1lf %S' GPRINT:inbits:AVERAGE:' Average\\: %5.1lf %S' GPRINT:inbits:LAST:' Current\\: %5.1lf %Sbit/s' COMMENT:'\\n' AREA:out_neg#4169E1:Out GPRINT:outbits:MAX:'  Maximum\\: %5.1lf %S' GPRINT:outbits:AVERAGE:' Average\\: %5.1lf %S' GPRINT:outbits:LAST:' Current\\: %5.1lf %Sbit/s' HRULE:0#000000");
+
+#	system("rrdtool graph $img/$hostname-$_[0]-$_[1].png -s -1$_[1] --color=BACK#000000 --color=CANVAS#000000 --color=FONT#FFFFFF --color=GRID#7F7F7F --color=MGRID#FFFFFF --full-size-mode --border 0 -h 450 -w 900 -l 0 -a PNG -v bit/s DEF:in=$rrd/$hostname-$_[0].rrd:in:AVERAGE DEF:out=$rrd/$hostname-$_[0].rrd:out:AVERAGE CDEF:inbits=in,8,* CDEF:outbits=out,8,* CDEF:out_neg=outbits,-1,* TEXTALIGN:left AREA:inbits#32CD32:In GPRINT:inbits:MAX:'  Maximum\\: %5.1lf %S' GPRINT:inbits:AVERAGE:' Average\\: %5.1lf %S' GPRINT:inbits:LAST:' Current\\: %5.1lf %Sbit/s' COMMENT:\\n AREA:out_neg#4169E1:Out GPRINT:outbits:MAX:'  Maximum\\: %5.1lf %S' GPRINT:outbits:AVERAGE:' Average\\: %5.1lf %S' GPRINT:outbits:LAST:' Current\\: %5.1lf %Sbit/s' HRULE:0#000000");

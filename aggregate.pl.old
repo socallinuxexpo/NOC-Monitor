@@ -1,0 +1,73 @@
+#!/usr/bin/perl
+
+#
+# aggregate.pl - make rrd graphs of current # of AP associations
+#
+# Copyright 2014 by David Newman
+#
+# todo:
+# DONE 1. Use Net::SNMP instead of a system call to get values
+# 2. Align max/avg/current legend for "Out" counters
+# 3. Learn to aggregate data from multiple interfaces
+
+use strict;
+use warnings;
+
+use Data::Dumper;
+use Net::SNMP;
+use RRDs;
+
+# define location of rrdtool databases
+my $rrd = '/home/jhoblitt/apwatch/rrd';
+# define location of images
+my $img = '/home/jhoblitt/apwatch/images';
+my $ERR = RRDs::error;
+
+# make graphs
+&RRDGraph("day");
+&RRDGraph("week");
+
+sub RRDGraph {
+# creates graph
+#	  $_[0]: period (e.g., day, week, month, year)
+#	  $_[2]: ifDescr (e.g., GigabitEthernet1/0/1)
+
+	RRDs::graph "$img/aggregate-6hourly-live.png",
+		"-s 06:00 02/21/14",
+		"-S 1",
+        #"-s -1$_[0]",
+		"--color=BACK#000000",
+		"--color=CANVAS#000000",
+		"--color=FONT#FFFFFF",
+		"--color=GRID#FFFFFF",
+		"--color=MGRID#FFFFFF",
+		# "-t Current associations",
+#		"--lazy",
+		"--full-size-mode",
+        "-h", "450", "-w", "900",
+		"--border", "0",
+        "-l 0",
+		"-a", "PNG",
+		"-v Current associations",
+		"DEF:scale=$rrd/aggregate.rrd:scale:AVERAGE",
+		"DEF:scale-slow=$rrd/aggregate.rrd:scale-slow:AVERAGE",
+        # don't display steve stats
+        #"DEF:steve=$rrd/aggregate.rrd:steve:AVERAGE",
+        #"DEF:steve-slow=$rrd/aggregate.rrd:steve-slow:AVERAGE",
+		"TEXTALIGN:left",
+		"LINE1:scale#00FF00",
+        "LINE:scale#00FF00:scale",
+        #"GPRINT:scale:AVERAGE:\\: %5.1lf %S",
+		"GPRINT:scale:LAST:\\: %5.1lf",
+        "COMMENT:\\n",
+		"LINE2:scale-slow#FF0000",
+        "LINE:scale-slow#FF0000:scale-slow",
+		"GPRINT:scale-slow:LAST:\\: %5.1lf",
+		"COMMENT:\\n",
+		"HRULE:0#000000";
+		if ($ERR = RRDs::error) {
+			print "$0: unable to create graph $img/aggregate-6hourly.png:
+$ERR\n";
+		}
+}
+
